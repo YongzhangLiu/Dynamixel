@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dynamixel SDK
 <img src="http://emanual.robotis.com/assets/images/sw/sdk/dynamixel_sdk/overview/dynamixel_sdk_concept_logo.jpg">
 
@@ -16,3 +17,7 @@ For more information on ROS Packages for Dynamixel SDK, please refer to the ROS 
 - http://wiki.ros.org/dynamixel_sdk
 - http://wiki.ros.org/dynamixel_workbench
 - http://wiki.ros.org/dynamixel_workbench_msgs
+=======
+# Dynamixel
+Clone of Dynamixel SDK for FYP development
+>>>>>>> 9755bfc693aefab88f53f7aaf9eb9a48332ed618
