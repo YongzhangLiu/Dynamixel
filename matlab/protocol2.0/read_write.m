@@ -1,38 +1,3 @@
-%{
-Copyright 2017 ROBOTIS CO., LTD.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-%}
-
-% Author: Ryu Woon Jung (Leon)
-
-%{ 
-*********     Read and Write Example      ******************
-* Required Environment to run this example :
-    - Protocol 2.0 supported DYNAMIXEL(X, P, PRO/PRO(A), MX 2.0 series)
-    - DYNAMIXEL Starter Set (U2D2, U2D2 PHB, 12V SMPS)
-* How to use the example :
-    - Use proper DYNAMIXEL Model definition from line #44
-    - Build and Run from proper architecture subdirectory.
-    - For ARM based SBCs such as Raspberry Pi, use linux_sbc subdirectory to build and run.
-    - https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/
-
-* Author: Ryu Woon Jung (Leon)
-
-* Maintainer : Zerom, Will Son
-*********************************************************** 
-%}
-
 clc;
 clear all;
 
@@ -76,7 +41,7 @@ switch (My_DXL)
         ADDR_PRESENT_POSITION       = 132;
         DXL_MINIMUM_POSITION_VALUE  = 0; % Dynamixel will rotate between this value
         DXL_MAXIMUM_POSITION_VALUE  = 4095; % and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-        BAUDRATE                    = 57600;
+        BAUDRATE                    = 4500000; % 4.5Mbps, 7 baudrate ------------[CHECK]
 
     case ('PRO_SERIES')
         ADDR_TORQUE_ENABLE          = 562;  % Control table address is different in DYNAMIXEL model
@@ -108,11 +73,11 @@ end
 PROTOCOL_VERSION            = 2.0;          
 
 % Factory default ID of all DYNAMIXEL is 1
-DXL_ID                      = 1; 
+DXL_ID                      = 2; % -------------[CHANGED]
 
 % Use the actual port assigned to the U2D2. 
 % ex) Windows: 'COM*', Linux: '/dev/ttyUSB*', Mac: '/dev/tty.usbserial-*' 
-DEVICENAME                  = '/dev/ttyUSB0';       
+DEVICENAME                  = 'COM5'; % --------[CHANGED]       
 
 % Common Control Table Address and Data 
 ADDR_OPERATING_MODE         = 11;          
