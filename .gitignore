@@ -1,3 +1,6 @@
+# MATLAB
+*.asv
+
 # Visual Studio
 *.VC.db
 *.VC.opendb
