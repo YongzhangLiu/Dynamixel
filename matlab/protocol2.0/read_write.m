@@ -77,7 +77,7 @@ DXL_ID                      = 2; % -------------[CHANGED]
 
 % Use the actual port assigned to the U2D2. 
 % ex) Windows: 'COM*', Linux: '/dev/ttyUSB*', Mac: '/dev/tty.usbserial-*' 
-DEVICENAME                  = 'COM5'; % --------[CHANGED]       
+DEVICENAME                  = 'COM3'; % --------[CHANGED]       
 
 % Common Control Table Address and Data 
 ADDR_OPERATING_MODE         = 11;          
@@ -128,6 +128,18 @@ else
     return;
 end
 
+% Disable Dynamixel Torque
+write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
+dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
+if dxl_comm_result ~= COMM_SUCCESS
+    fprintf('%s\n', getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+elseif dxl_error ~= 0
+    fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
+end
+
+% Set operating mode
+write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_OPERATING_MODE, OPERATING_MODE);
 
 % Enable Dynamixel Torque
 write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);

@@ -23,7 +23,8 @@ end
 % General config
 PROTOCOL_VERSION            = 2.0;          
 DXL_ID                      = 2; % -----------------------------------[CHANGED]
-DEVICENAME                  = 'COM5';  % -----------------------------[CHANGED]
+DEVICENAME                  = 'COM3';  % -----------------------------[CHANGED]
+% DEVICENAME                  = 'COM5';  % -----------------------------[CHANGED]
 BAUDRATE                    = 4500000; % 4.5Mbps, 7 baudrate ---------[CHECK]
 
 % Common Control Table Address and Data 
@@ -51,13 +52,20 @@ port_num = portHandler(DEVICENAME);
     % Initialize PacketHandler Structs
 packetHandler();
     % Variables initialization
-index = 1;
 dxl_comm_result = COMM_TX_FAIL;           % Communication result
 dxl_goal_pwm = 0;                           % Goal pwm (-855-855) ------[PWM]
 
 dxl_error = 0;                              % Dynamixel error
+dxl_error_prev = 0;
 dxl_present_position = 0;                   % Present position
-
+dxl_goal_position = 0;                      % goal position
+    % PID
+Kp = 2.0;
+Ki = 0.5;
+Kd = 0.1;
+    % Timer
+start_time = 0;
+t = 0;
 
 % Open port
 if (openPort(port_num))
@@ -98,12 +106,48 @@ while 1
     end
 
     % Write goal position
-    dxl_goal_pwm = input('Input PWM Value\n');
-    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_PWM, typecast(int16(dxl_goal_pwm), 'uint16'));
-    check_comm_result(port_num, PROTOCOL_VERSION);
+    % dxl_goal_pwm = input('Input PWM Value\n');
+    dxl_goal_position = int32(input('Input Position Value\n'));
+    
+    % Timer
+    start_time = tic;
+    t = tic;
 
-    % Read present position
-    dxl_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRESENT_POSITION);
+    % Control Loop to realize position input
+    while 1
+        % PID Controller
+        
+        % Update previous error
+        dxl_error_prev = dxl_error;
+
+        dxl_goal_pwm = Kp * dxl_error + Ki * dxl_error * toc(start_time) + Kd * (dxl_error - dxl_error_prev) / toc(t);
+        dxl_goal_pwm = map(dxl_goal_pwm, -4096, 4096, -855, 855); % Error 1 rev maxes out PWM output
+        % Write PWM value
+        write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_PWM, typecast(int16(dxl_goal_pwm), 'uint16'));
+        check_comm_result(port_num, PROTOCOL_VERSION);
+        t = tic;
+       
+        % Read present position
+        % prev position to fix jerk issue
+        dxl_present_position_prev = dxl_present_position;
+        dxl_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRESENT_POSITION);
+        dxl_present_position = typecast(uint32(dxl_present_position), 'int32');
+        if ~check_comm_result(port_num, PROTOCOL_VERSION)
+             dxl_present_position = dxl_present_position_prev;
+        end
+        
+        % Error
+        dxl_error = dxl_goal_position - dxl_present_position;
+
+        fprintf('[ID:%03d] GoalPos:%03d  PresPos:%03d, PresPWM: %03d\n', DXL_ID, dxl_goal_position, typecast(uint32(dxl_present_position), 'int32'), dxl_goal_pwm);
+
+        if ~(abs(dxl_error) > DXL_MOVING_STATUS_THRESHOLD)
+            break;
+        end
+    end
+
+    % Write PWM 0
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_PWM, 0);
     check_comm_result(port_num, PROTOCOL_VERSION);
 end
 
@@ -134,3 +178,18 @@ function result = check_comm_result(port_num, PROTOCOL_VERSION)
         result = false;
     end
 end
+
+function result = map(x, in_min, in_max, out_min, out_max)
+    % improved map() function, when input exceeds specified range output is kept within limit
+    if x < in_min 
+        result = out_min;
+        return;
+    end
+    if x > in_max
+        result = out_max;
+        return;
+    end
+    result =  (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    return;
+end
+
